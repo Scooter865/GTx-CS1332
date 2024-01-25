@@ -2,6 +2,7 @@ package com.graphtraversals;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,6 +122,58 @@ public class GraphAlgorithms {
         return;
     }
     
+    /**
+    * Implementation of Dijkstra's Algorithm to find the shortest path to all vertices.
+    * 
+    * You may assume that the passed in start vertex and graph will not be null.
+    * You may assume that the start vertex exists in the graph.
+    *
+    * I suppose this could be implemented to return a list or set of VertexDistance<T> but I don't want to
+    * 
+    * @param <T>   The generic typing of the data.
+    * @param start The vertex to begin Dijkstra's on.
+    * @param graph The graph we are applying Dijkstra's to.
+    * @return distance map that stores vertices as keys and the shortest distance 
+    * to them from start as values
+    */
+    public static <T> Map<Vertex<T>, Integer> dijkstras(Vertex<T> start, Graph<T> graph) {
+        Map<Vertex<T>, Integer> distanceMap = new HashMap<>();
+        Set<Vertex<T>> visitedSet = new HashSet<>();
+        // I think a regular priority queue will work because Edge implements comparator/compareTo
+        PriorityQueue<VertexDistance<T>> pq = new PriorityQueue<>();
+
+        // Init all vertex distance to inf
+        for (Vertex<T> v : graph.getVertices()) {
+            distanceMap.put(v, Integer.MAX_VALUE);
+        }
+        pq.add(new VertexDistance<>(start, 0));
+
+        int numVertices = graph.getVertices().size();
+        while (!pq.isEmpty() && visitedSet.size() < numVertices) {
+            // Dequeue
+            VertexDistance<T> vd = pq.remove();
+            Vertex<T> v = vd.getVertex();
+            Integer d = vd.getDistance();
+
+            if (!visitedSet.contains(v)) {
+                // Add newly visited vertex to visited set and update the shortest cumulative distance to it
+                visitedSet.add(v);
+                distanceMap.put(v, d);
+
+                // Enqueue neighboring vertices
+                for (VertexDistance<T> wd : graph.getAdjList().get(v)) {
+                    Vertex<T> neighborVertex = wd.getVertex();
+                    Integer neighborDistance = wd.getDistance();
+                    if (!visitedSet.contains(neighborVertex)) {
+                        pq.add(new VertexDistance<>(neighborVertex, d + neighborDistance));
+                    }
+                }
+            }
+        }
+        return distanceMap;
+    }
+    
+    
     
     /**
     * Runs Prim's algorithm on the given graph and returns the Minimum
@@ -191,7 +244,7 @@ public class GraphAlgorithms {
                 }
             }
         }
-
+        
         if (PQ.isEmpty() && VS.size() < gSize) {
             return null;
         }

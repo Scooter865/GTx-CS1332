@@ -101,4 +101,87 @@ public class PatternMatching {
 
         return lastTable;
     }
+
+    /** 
+     * KMP implementation
+     * This calls the build failure table method then uses the failure table to run the KMP algorithm
+     * 
+      You may assume that the passed in pattern, text, and comparator will not be null.
+     *
+     * @param pattern    The pattern you are searching for in a body of text.
+     * @param text       The body of text where you search for the pattern.
+     * @param comparator You MUST use this to check if characters are equal.
+     * @return           List containing the starting index for each match found.
+     */
+    public static List<Integer> kmp(CharSequence pattern, CharSequence text, CharacterComparator comparator) {
+        Integer[] failTable = buildFailureTable(pattern, comparator);
+        List<Integer> matchList = new ArrayList<>();
+        int j = 0, k = 0;
+        int n = text.length();
+        int m = pattern.length();
+        
+        while (k < n) {
+            if (comparator.compare(pattern.charAt(j), text.charAt(k)) == 0) {
+                if (j == m-1) {
+                    // found a match 
+                    matchList.add(k-m+1);
+                    // I think smart shifting is the right thing to do here
+                    // Dumb shifting would be resetting j = 0
+                    j = failTable[j-1];
+                }
+                else {
+                    j++;
+                    k++;
+                }
+            }
+            else {
+                // No math infomation, shift by 1
+                if (j == 0) {
+                    k++;
+                }
+                // Some match so far, shift smart
+                else {
+                    j = failTable[j-1];
+                }
+            }
+        }
+        return matchList;
+    }
+
+    /**
+     * Builds the failure table for the KMP code
+     * 
+     * If the pattern is empty, return an empty map.
+     * You may assume that the passed in pattern will not be null.
+     *
+     * @param pattern A pattern you are building last table for.
+     * @return An integer array representing the failure map
+     */
+    public static Integer[] buildFailureTable(CharSequence pattern, CharacterComparator comparator) {
+        int m = pattern.length();
+        Integer failureTable[] = new Integer[m];
+        failureTable[0] = 0;
+        int i = 0, j = 1;
+
+        while (j < m) {
+            // Matching characters case
+            if (comparator.compare(pattern.charAt(i), pattern.charAt(j)) == 0) {
+                failureTable[j] = i+1;
+                i++;
+                j++;
+            }
+            else {
+                // No match and no running prefix
+                if (i == 0) {
+                    failureTable[j] = 0;
+                    j++;
+                }
+                // No match so back i up
+                else {
+                    i = failureTable[i-1];
+                }
+            }
+        }
+        return failureTable;
+    }
 }
